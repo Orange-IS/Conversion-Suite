@@ -31,6 +31,7 @@ Expect: no DB errors in debug log; KPIs and charts/lists consistent with filter.
 - [ ] **Funnel by company** / **Funnel by campaign link** show rows with numeric cells (not blank columns).
 - [ ] If Step 1 > 0 and Step 2 = 0 everywhere: verify Click Tracker **block view** events exist on landing templates (see on-page guidance notice).
 - [ ] **Export funnel** downloads CSV (`export_csv=utm_funnel&funnel_scope=company|campaign|both|global|complete`) with rows aligned to visible funnel sections and respecting **`utm_filter`** + dates (`complete` = global block + company table + campaign table).
+- [ ] Step definitions for sign-off match `utm-manager-funnel-semantics.md` (Steps 1–3 and global vs per-link conversion rules).
 
 ## 5. UTM Click Tracker
 

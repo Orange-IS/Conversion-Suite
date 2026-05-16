@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Versioning note:** use `0.73.x` patch bumps for small fixes (45, 46, …); bump the middle segment (`0.74.x`) for larger feature or behavior changes.
 
+## [Unreleased]
+
+### Added
+
+- **Docs:** `utm-manager-funnel-semantics.md` (UTM Funnel Steps 1–3, aligned with metrics logic).
+
+### Fixed
+
+- **UTM Funnel:** Global card footnote for Step 3 now matches behaviour — conversion labels apply on **Funnel by campaign link** rows; global and company rollups use the broad Step 3 rule.
+
 ## [0.73.6] - 2026-05-12
 
 ### Fixed

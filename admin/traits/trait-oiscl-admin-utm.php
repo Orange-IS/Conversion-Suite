@@ -4952,7 +4952,7 @@ trait OISCL_Admin_Utm_Trait {
         $this->oiscl_utm_render_funnel_steps_visual(
             $global_stats,
             __( 'Global UTM funnel (any campaign)', 'ois-conversion-suite' ),
-            __( 'Step 3 uses each link’s conversion label from Settings when set; otherwise any real click after a block counts. Per-company tables below still filter to saved campaigns only.', 'ois-conversion-suite' )
+            __( 'Step 3 here counts any qualifying interaction after a block view. Rows under Funnel by campaign link narrow Step 3 when you set a Conversion click label on that saved link; Funnel by company uses the same broad Step 3 rule as this card.', 'ois-conversion-suite' )
         );
 
         $co_rows = array();
