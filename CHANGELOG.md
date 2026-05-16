@@ -23,6 +23,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Send Reports:** Per-job **preferred send time** (site timezone), **pause/resume** without deleting jobs, **next run** aligned to cadence + clock (`compute_next_run_after`), and **richer notification emails** (summary table, CSV size when attached, links to Custom Dashboards and Send Reports).
 
+- **Send Reports:** **Delivery format** (email-only, CSV, HTML snapshot, print-ready HTML for Save as PDF), presets **Yesterday** / **Today**, default range **Yesterday**, Daily cadence auto-suggests Yesterday in the form, **Send now** from the form or each saved job (does not change schedules), and shared tabular export for CSV/HTML attachments (`get_tabular_export`).
+
 - **Admin UTM trait:** Proper docblock on `oiscl_process_utm_settings_request` (replaces obsolete inline marker).
 
 ### Fixed

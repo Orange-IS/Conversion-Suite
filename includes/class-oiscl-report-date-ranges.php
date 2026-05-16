@@ -14,7 +14,7 @@ final class OISCL_Report_Date_Ranges {
 	/**
 	 * Preset keys (mirror OISCL_Scheduled_Reports::PERIOD_*).
 	 *
-	 * @param string               $preset rolling_7|rolling_14|rolling_30|prev_calendar_month|prev_month_1_15|prev_month_16_end
+	 * @param string               $preset rolling_7|rolling_14|rolling_30|yesterday|today|prev_calendar_month|prev_month_1_15|prev_month_16_end
 	 * @param int|null             $now_ts   Unix timestamp (default now).
 	 * @return array{start_date:string,end_date:string}|null
 	 */
@@ -32,6 +32,16 @@ final class OISCL_Report_Date_Ranges {
 		$yesterday = $today->modify( '-1 day' );
 
 		switch ( $preset ) {
+			case 'yesterday':
+				$start = $yesterday;
+				$end   = $yesterday;
+				break;
+
+			case 'today':
+				$start = $today;
+				$end   = $today;
+				break;
+
 			case 'rolling_7':
 				$end = $yesterday;
 				$start = $end->modify( '-6 days' );
