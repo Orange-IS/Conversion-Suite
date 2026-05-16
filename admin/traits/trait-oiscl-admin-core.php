@@ -49,6 +49,27 @@ trait OISCL_Admin_Core_Trait {
                 $admin->add_cap( 'manage_ois_marketing' );
             }
         }
+
+        add_filter( 'map_meta_cap', array( $this, 'oiscl_map_meta_cap_ois_permissions' ), 10, 4 );
+    }
+
+    /**
+     * Users with manage_options (site admins) can always access OIS menus even if custom caps were stripped from the role row.
+     *
+     * @param string[] $caps Primitive caps to check.
+     * @param string   $cap  Capability being checked.
+     * @param int      $user_id User ID.
+     * @param array    $args Additional context.
+     * @return string[]
+     */
+    public function oiscl_map_meta_cap_ois_permissions( $caps, $cap, $user_id, $args ) {
+        if ( ! in_array( $cap, array( 'view_ois_analytics', 'manage_ois_marketing' ), true ) ) {
+            return $caps;
+        }
+        if ( $user_id && user_can( $user_id, 'manage_options' ) ) {
+            return array( 'manage_options' );
+        }
+        return $caps;
     }
     
     public function enqueue_admin_assets($hook) {

@@ -14,6 +14,7 @@ final class OISCL_Scheduled_Reports {
 	const OPTION    = 'oiscl_scheduled_report_jobs';
 	const CRON_HOOK = 'oiscl_scheduled_reports_tick';
 
+	const CADENCE_DAILY    = 'daily';
 	const CADENCE_WEEKLY   = 'weekly';
 	const CADENCE_BIWEEKLY = 'biweekly';
 	const CADENCE_MONTHLY  = 'monthly';
@@ -70,10 +71,43 @@ final class OISCL_Scheduled_Reports {
 	}
 
 	/**
-	 * @param string $cadence weekly|biweekly|monthly
+	 * @return string[]
+	 */
+	public static function allowed_cadences() {
+		return array(
+			self::CADENCE_DAILY,
+			self::CADENCE_WEEKLY,
+			self::CADENCE_BIWEEKLY,
+			self::CADENCE_MONTHLY,
+		);
+	}
+
+	/**
+	 * Human-readable cadence label (Send Reports UI).
+	 *
+	 * @param string $cadence Stored cadence key.
+	 */
+	public static function cadence_label( $cadence ) {
+		switch ( (string) $cadence ) {
+			case self::CADENCE_DAILY:
+				return __( 'Daily', 'ois-conversion-suite' );
+			case self::CADENCE_BIWEEKLY:
+				return __( 'Every 14 days', 'ois-conversion-suite' );
+			case self::CADENCE_MONTHLY:
+				return __( 'About every 30 days', 'ois-conversion-suite' );
+			case self::CADENCE_WEEKLY:
+			default:
+				return __( 'Every 7 days', 'ois-conversion-suite' );
+		}
+	}
+
+	/**
+	 * @param string $cadence daily|weekly|biweekly|monthly
 	 */
 	public static function cadence_seconds( $cadence ) {
 		switch ( $cadence ) {
+			case self::CADENCE_DAILY:
+				return DAY_IN_SECONDS;
 			case self::CADENCE_BIWEEKLY:
 				return 14 * DAY_IN_SECONDS;
 			case self::CADENCE_MONTHLY:
@@ -160,7 +194,7 @@ final class OISCL_Scheduled_Reports {
 			$site = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
 			$subj = sprintf(
 				/* translators: 1: site name, 2: dashboard title */
-				__( '[%1$s] Reporte: %2$s', 'ois-conversion-suite' ),
+				__( '[%1$s] Report: %2$s', 'ois-conversion-suite' ),
 				$site,
 				$dash_title
 			);
@@ -168,13 +202,13 @@ final class OISCL_Scheduled_Reports {
 			$tz_try = function_exists( 'wp_timezone_string' ) ? wp_timezone_string() : '';
 			$tz     = $tz_try ? $tz_try : 'UTC';
 
-			$body  = '<p>' . esc_html__( 'Informe programado (snapshot). Los datos corresponden únicamente al rango indicado.', 'ois-conversion-suite' ) . '</p>';
-			$body .= '<p><strong>' . esc_html__( 'Plantilla / tablero:', 'ois-conversion-suite' ) . '</strong> ' . esc_html( $dash_title ) . '</p>';
-			$body .= '<p><strong>' . esc_html__( 'Periodo:', 'ois-conversion-suite' ) . '</strong> ' . esc_html( $range['start_date'] . ' — ' . $range['end_date'] ) . '</p>';
-			$body .= '<p><strong>' . esc_html__( 'Zona horaria del sitio:', 'ois-conversion-suite' ) . '</strong> ' . esc_html( $tz ) . '</p>';
+			$body  = '<p>' . esc_html__( 'Scheduled report snapshot. Figures apply only to the date range below.', 'ois-conversion-suite' ) . '</p>';
+			$body .= '<p><strong>' . esc_html__( 'Template / board:', 'ois-conversion-suite' ) . '</strong> ' . esc_html( $dash_title ) . '</p>';
+			$body .= '<p><strong>' . esc_html__( 'Period:', 'ois-conversion-suite' ) . '</strong> ' . esc_html( $range['start_date'] . ' — ' . $range['end_date'] ) . '</p>';
+			$body .= '<p><strong>' . esc_html__( 'Site timezone:', 'ois-conversion-suite' ) . '</strong> ' . esc_html( $tz ) . '</p>';
 
 			if ( empty( $attachments ) ) {
-				$body .= '<p><em>' . esc_html__( 'No hay columnas tabulares en esta plantilla; el CSV solo se genera cuando el tablero incluye bloques de columnas en Custom Dashboards.', 'ois-conversion-suite' ) . '</em></p>';
+				$body .= '<p><em>' . esc_html__( 'This template has no tabular columns; CSV is only generated when the board includes column blocks in Custom Dashboards.', 'ois-conversion-suite' ) . '</em></p>';
 			}
 
 			$headers = array( 'Content-Type: text/html; charset=UTF-8' );
@@ -215,7 +249,7 @@ final class OISCL_Scheduled_Reports {
 			exit;
 		}
 
-		if ( ! in_array( $cadence, array( self::CADENCE_WEEKLY, self::CADENCE_BIWEEKLY, self::CADENCE_MONTHLY ), true ) ) {
+		if ( ! in_array( $cadence, self::allowed_cadences(), true ) ) {
 			$cadence = self::CADENCE_WEEKLY;
 		}
 		if ( ! in_array( $period, self::allowed_periods(), true ) ) {

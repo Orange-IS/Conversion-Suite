@@ -15,15 +15,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`OISCL_Utm_Alert_Rules`:** pure predicates for campaign drop / zero-window alerts; PHPUnit `UtmAlertRulesTest`.
 - **PHPUnit:** `TrackingNormalizeAnchorTest` for `OISCL_Tracking::normalize_anchor_for_storage`.
 - **Repo:** `.gitignore` excludes `vendor/` and `.phpunit.result.cache` until Composer is used locally.
-- **Send Reports (MVP):** schedule email snapshots from **Custom Dashboard** templates (`oiscl_scheduled_report_jobs`, cron `oiscl_scheduled_reports_tick`); CSV attachment when the board includes tabular columns; date presets via `OISCL_Report_Date_Ranges`. Dashboard metric dictionary moved to `OISCL_Dashboard_Dictionary`.
+- **Send Reports (MVP):** schedule email snapshots from **Custom Dashboard** templates (`oiscl_scheduled_report_jobs`, cron `oiscl_scheduled_reports_tick`); CSV attachment when the board includes tabular columns; date presets via `OISCL_Report_Date_Ranges`; **daily** cadence option (`CADENCE_DAILY`). Dashboard metric dictionary moved to `OISCL_Dashboard_Dictionary`.
 
 ### Changed
+
+- **Send Reports:** Admin page and scheduled email copy default to **English** (replacing Spanish strings).
 
 - **Admin UTM trait:** Proper docblock on `oiscl_process_utm_settings_request` (replaces obsolete inline marker).
 
 ### Fixed
 
 - **Capabilities:** Administrator now receives **`manage_ois_marketing`** whenever it is missing (bootstrap runs independently of `view_ois_analytics`). Restores access to Custom Dashboards, Send Reports, and SEO when WordPress showed “Sorry, you are not allowed to access this page.”
+
+- **Capabilities:** `map_meta_cap` treats **`manage_options`** as satisfying **`view_ois_analytics`** and **`manage_ois_marketing`** so site admins retain menu access when role capabilities were stripped by another plugin or host tooling.
 
 - **UTM Funnel:** Global card footnote for Step 3 now matches behaviour — conversion labels apply on **Funnel by campaign link** rows; global and company rollups use the broad Step 3 rule.
 
