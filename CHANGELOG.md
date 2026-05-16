@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`OISCL_Utm_Alert_Rules`:** pure predicates for campaign drop / zero-window alerts; PHPUnit `UtmAlertRulesTest`.
 - **PHPUnit:** `TrackingNormalizeAnchorTest` for `OISCL_Tracking::normalize_anchor_for_storage`.
 - **Repo:** `.gitignore` excludes `vendor/` and `.phpunit.result.cache` until Composer is used locally.
+- **Send Reports (MVP):** schedule email snapshots from **Custom Dashboard** templates (`oiscl_scheduled_report_jobs`, cron `oiscl_scheduled_reports_tick`); CSV attachment when the board includes tabular columns; date presets via `OISCL_Report_Date_Ranges`. Dashboard metric dictionary moved to `OISCL_Dashboard_Dictionary`.
 
 ### Changed
 

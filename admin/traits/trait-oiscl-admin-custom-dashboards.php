@@ -36,7 +36,7 @@ trait OISCL_Admin_Custom_Dashboards_Trait {
         $start_date = $date_cap['start_date'];
         $end_date   = $date_cap['end_date'];
 
-        $dict = $this->get_dashboard_dictionary();
+        $dict = OISCL_Dashboard_Dictionary::all();
         $dynamic_js = ""; // Almacenará los gráficos a renderizar
 
         echo '<div class="wrap oiscl-layout-root">';

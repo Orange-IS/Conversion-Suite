@@ -29,6 +29,7 @@ delete_option( 'oiscl_settings' );
 delete_option( 'oiscl_general_settings' );
 delete_option( 'oiscl_custom_dashboards' );
 delete_option( 'oiscl_report_templates' );
+delete_option( 'oiscl_scheduled_report_jobs' );
 delete_option( 'oiscl_delete_data_on_uninstall' );
 
 // Best-effort removal of per-URL rule options (oiscl_rules_*).

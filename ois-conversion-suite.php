@@ -21,6 +21,17 @@ register_activation_hook( __FILE__, function() {
 	OISCL_Activator::activate();
 } );
 
+register_deactivation_hook(
+	__FILE__,
+	function () {
+		$file = plugin_dir_path( __FILE__ ) . 'includes/class-oiscl-scheduled-reports.php';
+		if ( file_exists( $file ) ) {
+			require_once $file;
+			OISCL_Scheduled_Reports::clear_cron();
+		}
+	}
+);
+
 // 2. INICIALIZACIÓN
 add_action( 'plugins_loaded', function() {
 	load_plugin_textdomain(
@@ -40,6 +51,12 @@ add_action( 'plugins_loaded', function() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-oiscl-utm-alert-rules.php';
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-oiscl-utm-alerts.php';
 	OISCL_Utm_Alerts::init();
+
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-oiscl-dashboard-dictionary.php';
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-oiscl-report-date-ranges.php';
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-oiscl-custom-dashboard-csv.php';
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-oiscl-scheduled-reports.php';
+	OISCL_Scheduled_Reports::init();
 
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-oiscl-plan.php';
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-oiscl-tracking.php';

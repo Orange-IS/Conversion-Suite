@@ -227,7 +227,7 @@ trait OISCL_Admin_Core_Trait {
             $cols = []; foreach($dash['elements'] as $el) { if (strpos($el, 'col_') === 0) { $cols[] = str_replace('col_', '', $el); } }
             if (empty($cols)) return; 
             
-            $dict = $this->get_dashboard_dictionary();
+            $dict = OISCL_Dashboard_Dictionary::all();
             $headers = []; $dimensions = []; $metrics = []; $select_sql = [];
             foreach ($cols as $col_key) {
                 if (!isset($dict['columns'][$col_key])) continue;
@@ -623,36 +623,6 @@ trait OISCL_Admin_Core_Trait {
         }
         fclose( $out );
         exit;
-    }
-
-    private function get_dashboard_dictionary() {
-        return [
-            'charts' => [
-                'chart_traffic' => ['label' => '📈 Evolución Tráfico', 'desc' => 'Vistas vs Usuarios'],
-                'chart_hourly'  => ['label' => '📊 Clics por Hora', 'desc' => 'Distribución diaria'],
-            ],
-            'donuts' => [
-                'donut_source'  => ['label' => '🍩 Tráfico por Fuente', 'desc' => 'Origen del visitante'],
-                'donut_device'  => ['label' => '📱 Dispositivos', 'desc' => 'Móvil vs PC vs Tablet'],
-                'donut_os'      => ['label' => '💻 Sistema Operativo', 'desc' => 'Windows, Mac, iOS...'],
-                'donut_browser' => ['label' => '🌐 Navegador', 'desc' => 'Chrome, Safari...'],
-            ],
-            'columns' => [
-                'origin_url' => ['label' => '🔗 URL Origen', 'type' => 'dim'],
-                'destination_url' => ['label' => '🎯 URL Destino', 'type' => 'dim'],
-                'anchor_text' => ['label' => '🖱️ Botón Clicado', 'type' => 'dim'],
-                'context_text' => ['label' => '📖 Bloque Lectura', 'type' => 'dim'],
-                'device' => ['label' => '📱 Dispositivo', 'type' => 'dim'],
-                'os' => ['label' => '💻 Sistema', 'type' => 'dim'],
-                'country' => ['label' => '🏳️ País', 'type' => 'dim'],
-                'utm_campaign' => ['label' => '🚀 Campaña (UTM)', 'type' => 'dim'],
-                'utm_term' => ['label' => '🔑 Keyword (UTM)', 'type' => 'dim'],
-                'is_bot' => ['label' => '🤖 Tipo Tráfico', 'type' => 'dim'],
-                'total_clicks' => ['label' => '📊 Total Acciones', 'type' => 'metric', 'sql' => 'SUM(clicks) as total_clicks'],
-                'uniques' => ['label' => '👤 Usuarios Únicos', 'type' => 'metric', 'sql' => 'COUNT(DISTINCT session_id) as uniques'],
-                'avg_time' => ['label' => '⏱️ Tiempo (s)', 'type' => 'metric', 'sql' => 'AVG(time_spent) as avg_time']
-            ]
-        ];
     }
 
     /**
