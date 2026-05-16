@@ -28,7 +28,7 @@ Prioritize in order when bandwidth allows.
 |-------|------|--------|
 | **Docs** | Funnel semantics one-pager | **Done** — `utm-manager-funnel-semantics.md` (keep in sync with funnel PHP). Global funnel UI note corrected for Step 3 vs per-link conversion labels. |
 | **Docs** | Roles & capabilities | **Done** — `utm-manager-roles-capabilities.md` (menus, exports, AJAX, alerts, activation grants). |
-| **Tests** | PHPUnit beyond `Utm_Query_Helper` | `UtmQueryHelperTest` + **`UtmAlertRulesTest`** (`OISCL_Utm_Alert_Rules`). Continue with other pure helpers / fixtures as needed. |
+| **Tests** | PHPUnit beyond `Utm_Query_Helper` | `UtmQueryHelperTest`, **`UtmAlertRulesTest`**, **`TrackingNormalizeAnchorTest`** (legacy block anchor → canonical). Run after `composer install` when tooling is available; CI unchanged. |
 | **Tests** | Alerts logic | **Partial:** drop / zero-window predicates covered by `OISCL_Utm_Alert_Rules` + PHPUnit; full `compute_alerts` still integration-level (SQL). |
 | **Maintenance** | Admin PHP cleanup | Legacy “delete me” marker removed from UTM settings handler doc; prefer incremental PHPCS alignment on future edits. |
 
