@@ -1,0 +1,17 @@
+{
+    "name": "orangeinternet/ois-conversion-suite",
+    "description": "OIS Conversion Suite (WordPress plugin)",
+    "license": "proprietary",
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OISCL\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "@php vendor/bin/phpunit -c phpunit.xml.dist"
+    }
+}

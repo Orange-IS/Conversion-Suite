@@ -1,0 +1,709 @@
+/* OIS Conversion Suite - Admin Dashboard UI */
+
+/*
+ * Evita scroll horizontal en todo el admin del plugin: márgenes negativos antiguos
+ * ensanchaban el bloque más que #wpbody-content; tablas anchas se recortan con scroll local.
+ */
+body[class*="oiscl"] #wpbody-content > .wrap {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+body[class*="oiscl"] .oiscl-layout-root {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+body[class*="oiscl"] .wp-list-table.widefat td,
+body[class*="oiscl"] .wp-list-table.widefat th {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+
+body[class*="oiscl"] .ois-table-dashboard td,
+body[class*="oiscl"] .ois-table-dashboard th {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* ----- Pestañas unificadas (variables + JS tabs + WP nav-tab); ajustar solo aquí ----- */
+body[class*="oiscl"] {
+    --oiscl-tab-rail-bg: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+    --oiscl-tab-rail-border: #c5d0e0;
+    --oiscl-tab-inactive: #475569;
+    --oiscl-tab-active-fg: #ffffff;
+    --oiscl-tab-active-bg: #1a73e8;
+    --oiscl-tab-active-border: #1557b0;
+    --oiscl-tab-radius: 12px;
+    --oiscl-tab-btn-radius: 9px;
+}
+
+/* Analytics (botones .ois-tab-btn) */
+body[class*="oiscl"] .oiscl-tabstrip.ois-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    margin: 0 0 24px 0;
+    background: var(--oiscl-tab-rail-bg);
+    border: 1px solid var(--oiscl-tab-rail-border);
+    border-radius: var(--oiscl-tab-radius);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+body[class*="oiscl"] .oiscl-tabstrip .ois-tab-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid transparent;
+    border-radius: var(--oiscl-tab-btn-radius);
+    background: transparent;
+    padding: 10px 18px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--oiscl-tab-inactive);
+    cursor: pointer;
+    line-height: 1.25;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: none;
+}
+
+body[class*="oiscl"] .oiscl-tabstrip .ois-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.9);
+    color: #1e293b;
+}
+
+body[class*="oiscl"] .oiscl-tabstrip .ois-tab-btn.active {
+    background: var(--oiscl-tab-active-bg);
+    color: var(--oiscl-tab-active-fg);
+    border-color: var(--oiscl-tab-active-border);
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.28), 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+body[class*="oiscl"] .oiscl-tabstrip .ois-tab-btn.active:hover {
+    background: var(--oiscl-tab-active-border);
+    color: #ffffff;
+    border-color: #114cad;
+}
+
+body[class*="oiscl"] .oiscl-tabstrip .ois-tab-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(26, 115, 232, 0.35);
+}
+
+body[class*="oiscl"] .ois-tab-pane {
+    display: none;
+}
+
+body[class*="oiscl"] .ois-tab-pane.active {
+    display: block;
+}
+
+body[class*="oiscl"] .ois-box {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+body[class*="oiscl"] .ois-grid-3col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+body[class*="oiscl"] .ois-table-dashboard {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+body[class*="oiscl"] .ois-table-dashboard th {
+    text-align: left;
+    font-size: 11px;
+    color: #999;
+    text-transform: uppercase;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+body[class*="oiscl"] .ois-table-dashboard td {
+    padding: 10px 0;
+    border-bottom: 1px solid #f9f9f9;
+    font-size: 12px;
+}
+
+body[class*="oiscl"] .oiscl-audience-chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+/* WP nav-tab (Settings, UTM Tracker, Custom Dashboards, etc.) */
+body[class*="oiscl"] .oiscl-wp-tabstrip.nav-tab-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    margin: 0 0 22px 0;
+    width: fit-content;
+    max-width: 100%;
+    border-bottom: none;
+    background: var(--oiscl-tab-rail-bg);
+    border: 1px solid var(--oiscl-tab-rail-border);
+    border-radius: var(--oiscl-tab-radius);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+body[class*="oiscl"] .oiscl-wp-tabstrip .nav-tab {
+    float: none;
+    margin: 0;
+    border: 1px solid transparent;
+    border-radius: var(--oiscl-tab-btn-radius);
+    background: transparent;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--oiscl-tab-inactive);
+    line-height: 1.25;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[class*="oiscl"] .oiscl-wp-tabstrip .nav-tab:hover,
+body[class*="oiscl"] .oiscl-wp-tabstrip .nav-tab:focus {
+    color: #1e293b;
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.9);
+}
+
+body[class*="oiscl"] .oiscl-wp-tabstrip .nav-tab.nav-tab-active,
+body[class*="oiscl"] .oiscl-wp-tabstrip .nav-tab-active {
+    color: #ffffff !important;
+    background: var(--oiscl-tab-active-bg) !important;
+    border-color: var(--oiscl-tab-active-border) !important;
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.28), 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+body[class*="oiscl"] .oiscl-wp-tabstrip .nav-tab.nav-tab-active:hover,
+body[class*="oiscl"] .oiscl-wp-tabstrip .nav-tab.nav-tab-active:focus {
+    color: #ffffff !important;
+    background: var(--oiscl-tab-active-border) !important;
+    border-color: #114cad !important;
+}
+
+body[class*="oiscl"] .oiscl-defer-skel {
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    padding: 28px 20px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.oiscl-admin-wrap {
+    margin: 20px 20px 0 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Cabecera de Marca (Estilo Track The Click) */
+.oiscl-header {
+    background: #FFB525;
+    padding: 20px 30px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.oiscl-header h1 {
+    margin: 0;
+    color: #000;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+/* Cuadrícula de KPIs */
+.oiscl-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* Las Tarjetas Visuales (Cards) */
+.oiscl-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.oiscl-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+}
+
+.oiscl-card-title {
+    font-size: 13px;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin: 0 0 10px 0;
+}
+
+.oiscl-card-value {
+    font-size: 36px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.oiscl-card-trend {
+    font-size: 13px;
+    color: #10b981; /* Verde para métricas positivas */
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+}
+
+/* KPI cards with left accent stroke (UTM Manager, dashboards) */
+.oiscl-kpi-stroke-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.oiscl-kpi-stroke {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 16px 18px;
+    border-left-width: 4px;
+    border-left-style: solid;
+    box-sizing: border-box;
+}
+
+.oiscl-kpi-stroke__label {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #646970;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.oiscl-kpi-stroke__value {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    color: #1d2327;
+    line-height: 1.1;
+}
+
+.oiscl-kpi-stroke--blue { border-left-color: #2271b1; }
+.oiscl-kpi-stroke--accent { border-left-color: #1a73e8; }
+.oiscl-kpi-stroke--green { border-left-color: #46b450; }
+.oiscl-kpi-stroke--purple { border-left-color: #722ed1; }
+
+/* Unified button variants (use with .button for WP sizing) */
+.oiscl-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 600;
+    border-radius: 3px;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.oiscl-btn--primary {
+    background: #2271b1 !important;
+    border-color: #2271b1 !important;
+    color: #fff !important;
+}
+
+.oiscl-btn--primary:hover,
+.oiscl-btn--primary:focus {
+    background: #135e96 !important;
+    border-color: #135e96 !important;
+    color: #fff !important;
+}
+
+.oiscl-btn--accent {
+    background: #1a73e8 !important;
+    border-color: #1a73e8 !important;
+    color: #fff !important;
+}
+
+.oiscl-btn--accent:hover,
+.oiscl-btn--accent:focus {
+    background: #1557b0 !important;
+    border-color: #1557b0 !important;
+    color: #fff !important;
+}
+
+.oiscl-btn--danger {
+    background: #d63638 !important;
+    border-color: #d63638 !important;
+    color: #fff !important;
+}
+
+.oiscl-btn--danger:hover,
+.oiscl-btn--danger:focus {
+    background: #b32d2e !important;
+    border-color: #b32d2e !important;
+    color: #fff !important;
+}
+
+.oiscl-btn--success {
+    background: #46b450 !important;
+    border-color: #46b450 !important;
+    color: #fff !important;
+}
+
+.oiscl-btn--success:hover,
+.oiscl-btn--success:focus {
+    background: #399e42 !important;
+    border-color: #399e42 !important;
+    color: #fff !important;
+}
+
+.oiscl-btn--outline {
+    background: #fff !important;
+    border-color: #2271b1 !important;
+    color: #2271b1 !important;
+}
+
+.oiscl-btn--outline:hover,
+.oiscl-btn--outline:focus {
+    background: #f0f6fc !important;
+    border-color: #135e96 !important;
+    color: #135e96 !important;
+}
+
+.oiscl-btn--icon {
+    min-width: 32px;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+}
+
+/* Icon-only actions: no fill/border; color on hover for contrast */
+.oiscl-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 !important;
+    margin: 0;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #646970;
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1;
+    vertical-align: middle;
+    min-width: 28px;
+    min-height: 28px;
+}
+
+.oiscl-icon-btn:hover,
+.oiscl-icon-btn:focus {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none;
+    color: #2271b1;
+}
+
+.oiscl-icon-btn--danger {
+    color: #646970;
+}
+
+.oiscl-icon-btn--danger:hover,
+.oiscl-icon-btn--danger:focus {
+    color: #d63638;
+}
+
+.oiscl-icon-btn--success {
+    color: #646970;
+}
+
+.oiscl-icon-btn--success:hover,
+.oiscl-icon-btn--success:focus {
+    color: #2271b1;
+}
+
+.oiscl-icon-btn .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    margin: 0;
+}
+
+/* Modernización de Tablas */
+.oiscl-table-wrap {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.oiscl-table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.oiscl-table-wrap th {
+    background: #f8fafc;
+    text-align: left;
+    padding: 14px 20px;
+    font-size: 13px;
+    color: #475569;
+    font-weight: 700;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.oiscl-table-wrap td {
+    padding: 14px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 14px;
+}
+
+.oiscl-table-wrap tr:last-child td {
+    border-bottom: none;
+}
+
+body[class*="oiscl"] .oiscl-defer-skel {
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    padding: 28px 20px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+/* Título principal de pantallas sin bloque header (Settings, Custom Dashboards, etc.) */
+body[class*="oiscl"] .oiscl-admin-page-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1d2327;
+    margin: 0 0 18px 0;
+    line-height: 1.25;
+    padding: 0;
+}
+
+/* Título de contexto bajo la marca (fila con reloj en layout header) */
+body[class*="oiscl"] .ois-block-title--page-context {
+    margin: 0;
+    font-size: 23px;
+    font-weight: 600;
+    color: #1d2327;
+    line-height: 1.3;
+}
+
+/* Marca global en layout con hijos (versión, enlace) */
+body[class*="oiscl"] h1.oiscl-admin-page-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 0 0 20px 0;
+}
+
+/* Subtítulo dentro de tarjetas / modales (antes h4 suelto) */
+body[class*="oiscl"] .ois-block-title--subcard {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+    line-height: 1.35;
+}
+
+body[class*="oiscl"] .ois-block-title--subcard-tight {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+body[class*="oiscl"] .ois-block-title--aside {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a73e8;
+}
+
+/* Títulos de bloque unificados (tablas data_table/advanced_table, charts, tarjetas .ois-box) */
+body[class*="oiscl"] .ois-block-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1d2327;
+    line-height: 1.35;
+}
+
+body[class*="oiscl"] .ois-block-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+body[class*="oiscl"] .ois-block-title--section {
+    margin: 0 0 14px 0;
+    font-size: 20px;
+}
+
+body[class*="oiscl"] .ois-block-title--compact {
+    font-size: 13px;
+}
+
+/** Título de widget de chart con línea de stats debajo (flex + pequeño gap inferior) */
+body[class*="oiscl"] .ois-block-title--stack {
+    margin: 0 0 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+}
+
+/** Variante “eyebrow” (p. ej. Top User Profile en UTM) */
+body[class*="oiscl"] .ois-block-title--eyebrow {
+    font-size: 14px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+/** Grilla de tarjetas (Overview Analytics, tab Audience): 2 columnas en escritorio, 1 en estrecho */
+body[class*="oiscl"] .ois-analytics-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 782px) {
+    body[class*="oiscl"] .ois-analytics-card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+body[class*="oiscl"] .ois-block-title--bordered {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 12px;
+}
+
+body[class*="oiscl"] .ois-block-title--danger {
+    color: #d63638;
+}
+
+body[class*="oiscl"] .ois-block-title--accent {
+    color: #1a73e8;
+}
+
+body[class*="oiscl"] .ois-block-title--panel {
+    font-size: 20px;
+    margin: 0 0 12px 0;
+}
+
+body[class*="oiscl"] .ois-block-title--panel-lg {
+    font-size: 22px;
+    margin: 0 0 12px 0;
+}
+
+body[class*="oiscl"] .ois-block-title--slate {
+    color: #1e293b;
+}
+
+body[class*="oiscl"] h2.ois-block-title,
+body[class*="oiscl"] h3.ois-block-title {
+    line-height: 1.35;
+}
+
+body[class*="oiscl"] .ois-block-title--flush-top {
+    margin-top: 0 !important;
+}
+
+body[class*="oiscl"] .ois-block-title--spaced-top {
+    margin-top: 30px;
+}
+
+/* Menú Export (details): CSV / PNG / PDF por bloque */
+body[class*="oiscl"] .ois-export-menu {
+    position: relative;
+}
+
+body[class*="oiscl"] .ois-export-menu-summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+body[class*="oiscl"] .ois-export-menu-summary::-webkit-details-marker {
+    display: none;
+}
+
+body[class*="oiscl"] .ois-export-menu-panel {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    min-width: 220px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    z-index: 50;
+    padding: 6px 0;
+}
+
+body[class*="oiscl"] .ois-export-menu-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 14px !important;
+    height: auto !important;
+    line-height: 1.4 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 13px;
+    color: #1d2327;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: 0 !important;
+}
+
+body[class*="oiscl"] a.ois-export-menu-item:hover,
+body[class*="oiscl"] button.ois-export-menu-item:hover {
+    background: #f0f7ff !important;
+    color: #1a73e8;
+}

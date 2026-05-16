@@ -1,0 +1,33 @@
+/* Capa de Auditoría Visual para OIS Conversion Suite */
+
+/* Solo aplicamos los estilos visuales si el JS confirmó que es un Admin y le puso esta clase */
+.oiscl-audit-highlight {
+    position: relative;
+    transition: all 0.3s ease;
+    outline: 2px dashed #FFB525 !important;
+    outline-offset: 4px;
+}
+
+/* La burbuja amarilla de estadísticas SOLO para los bloques auditados */
+.oiscl-audit-highlight::after {
+    content: attr(data-ois-stats);
+    position: absolute;
+    top: -12px;
+    right: 10px;
+    background: #FFB525;
+    color: #000;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 12px;
+    z-index: 9999;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    pointer-events: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: 0.5px;
+}
+
+/* Evitamos que botones o enlaces trackeados se deformen si no tienen la clase de auditoría */
+a[data-ois-logged="true"], button[data-ois-logged="true"] {
+    /* Mantenemos su comportamiento normal para usuarios públicos */
+}
