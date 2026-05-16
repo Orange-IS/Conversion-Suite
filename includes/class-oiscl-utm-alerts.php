@@ -148,7 +148,7 @@ class OISCL_Utm_Alerts {
 				)
 			);
 
-			if ( $prev >= 5 && $curr < ( $prev * ( 100 - $drop_pct ) / 100 ) ) {
+			if ( OISCL_Utm_Alert_Rules::should_alert_drop( $prev, $curr, $drop_pct ) ) {
 				$pct_drop = $prev > 0 ? round( ( 1 - ( $curr / $prev ) ) * 100 ) : 0;
 				$alerts[] = array(
 					'type'     => 'drop',
@@ -180,7 +180,7 @@ class OISCL_Utm_Alerts {
 					gmdate( 'Y-m-d H:i:s', time() - ( 30 * DAY_IN_SECONDS ) )
 				)
 			);
-			if ( 0 === $recent && $had_prior > 0 ) {
+			if ( OISCL_Utm_Alert_Rules::should_alert_zero_window( $recent, $had_prior ) ) {
 				$alerts[] = array(
 					'type'     => 'zero',
 					'campaign' => $camp,

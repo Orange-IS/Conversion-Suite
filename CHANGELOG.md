@@ -12,6 +12,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Docs:** `utm-manager-funnel-semantics.md` (UTM Funnel Steps 1–3, aligned with metrics logic).
 - **Docs:** `utm-manager-roles-capabilities.md` (UTM menus, exports, AJAX, alerts vs `view_ois_analytics` / `manage_options`).
+- **`OISCL_Utm_Alert_Rules`:** pure predicates for campaign drop / zero-window alerts; PHPUnit `UtmAlertRulesTest`.
+
+### Changed
+
+- **Admin UTM trait:** Proper docblock on `oiscl_process_utm_settings_request` (replaces obsolete inline marker).
 
 ### Fixed
 

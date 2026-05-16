@@ -8,9 +8,11 @@ trait OISCL_Admin_Utm_Trait {
     // ==========================================
     // MODULE 7: OIS UTM TRACKER (MODAL + USER JOURNEY ENGINE)
     // ==========================================
-    
-    // FUNCION VIEJA BORRAR -------------------------------------------------------------------------
-     public function oiscl_process_utm_settings_request() {
+
+    /**
+     * Handle Settings → UTM Manager POST (save references) and GET delete. Requires manage_options.
+     */
+    public function oiscl_process_utm_settings_request() {
         if ( ! current_user_can( 'manage_options' ) ) {
             return;
         }

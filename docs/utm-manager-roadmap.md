@@ -28,9 +28,9 @@ Prioritize in order when bandwidth allows.
 |-------|------|--------|
 | **Docs** | Funnel semantics one-pager | **Done** — `utm-manager-funnel-semantics.md` (keep in sync with funnel PHP). Global funnel UI note corrected for Step 3 vs per-link conversion labels. |
 | **Docs** | Roles & capabilities | **Done** — `utm-manager-roles-capabilities.md` (menus, exports, AJAX, alerts, activation grants). |
-| **Tests** | PHPUnit beyond `Utm_Query_Helper` | Prefer extracting **pure helpers** (date windows, threshold math, CSV flags already covered) and testing without a full WordPress DB where possible. |
-| **Tests** | Alerts logic | Unit-test alert rules (drop % vs prior window, zero-traffic window) with injected/stubbed metrics rows if logic is refactored into testable methods. |
-| **Maintenance** | Admin PHP cleanup | Review legacy comments / dead paths in `trait-oiscl-admin-utm.php` (e.g. old handler markers); no behaviour change without QA pass. |
+| **Tests** | PHPUnit beyond `Utm_Query_Helper` | `UtmQueryHelperTest` + **`UtmAlertRulesTest`** (`OISCL_Utm_Alert_Rules`). Continue with other pure helpers / fixtures as needed. |
+| **Tests** | Alerts logic | **Partial:** drop / zero-window predicates covered by `OISCL_Utm_Alert_Rules` + PHPUnit; full `compute_alerts` still integration-level (SQL). |
+| **Maintenance** | Admin PHP cleanup | Legacy “delete me” marker removed from UTM settings handler doc; prefer incremental PHPCS alignment on future edits. |
 
 ---
 

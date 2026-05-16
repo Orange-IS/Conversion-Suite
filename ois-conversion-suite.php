@@ -37,6 +37,7 @@ add_action( 'plugins_loaded', function() {
 	OISCL_Activator::maybe_upgrade_utm_refs_google_columns();
 	OISCL_Activator::maybe_upgrade_utm_refs_spend_column();
 
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-oiscl-utm-alert-rules.php';
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-oiscl-utm-alerts.php';
 	OISCL_Utm_Alerts::init();
 
