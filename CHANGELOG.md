@@ -29,6 +29,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Send Reports:** Email attachments no longer keep the host `.tmp` name — files are renamed to `oiscl-report-{dashboard}-{start}-to-{end}.csv` or `.html` (print-ready adds `-print`) so clients open or save with the correct type.
+
 - **Capabilities:** Administrator now receives **`manage_ois_marketing`** whenever it is missing (bootstrap runs independently of `view_ois_analytics`). Restores access to Custom Dashboards, Send Reports, and SEO when WordPress showed “Sorry, you are not allowed to access this page.”
 
 - **Capabilities:** `map_meta_cap` treats **`manage_options`** as satisfying **`view_ois_analytics`** and **`manage_ois_marketing`** so site admins retain menu access when role capabilities were stripped by another plugin or host tooling.

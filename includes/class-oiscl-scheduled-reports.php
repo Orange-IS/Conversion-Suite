@@ -315,26 +315,28 @@ final class OISCL_Scheduled_Reports {
 		$fmt    = self::job_delivery_format( $job );
 		$export = OISCL_Custom_Dashboard_CSV::get_tabular_export( $dash, $range['start_date'], $range['end_date'] );
 
+		$attach_base = self::attachment_export_base_name( $dash_title, $dash_id, $range['start_date'], $range['end_date'] );
+
 		$attachments = array();
 		if ( null !== $export ) {
 			if ( self::DELIVERY_CSV === $fmt ) {
 				$tmp = OISCL_Custom_Dashboard_CSV::write_temp_csv_from_export( $export );
 				if ( $tmp && is_readable( $tmp ) ) {
-					$attachments[] = $tmp;
+					$attachments[] = self::finalize_attachment_path( $tmp, $attach_base, 'csv' );
 				}
 			} elseif ( self::DELIVERY_HTML === $fmt ) {
 				$site = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
 				$sub  = $site . ' — ' . $range['start_date'] . ' — ' . $range['end_date'];
 				$tmp  = OISCL_Custom_Dashboard_CSV::write_temp_html_from_export( $export, $dash_title, $sub, false );
 				if ( $tmp && is_readable( $tmp ) ) {
-					$attachments[] = $tmp;
+					$attachments[] = self::finalize_attachment_path( $tmp, $attach_base, 'html' );
 				}
 			} elseif ( self::DELIVERY_PDF === $fmt ) {
 				$site = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
 				$sub  = $site . ' — ' . $range['start_date'] . ' — ' . $range['end_date'];
 				$tmp  = OISCL_Custom_Dashboard_CSV::write_temp_html_from_export( $export, $dash_title, $sub, true );
 				if ( $tmp && is_readable( $tmp ) ) {
-					$attachments[] = $tmp;
+					$attachments[] = self::finalize_attachment_path( $tmp, $attach_base . '-print', 'html' );
 				}
 			}
 		}
@@ -397,6 +399,72 @@ final class OISCL_Scheduled_Reports {
 			$job['last_sent'] = $now_ts;
 			$job['next_run']  = self::schedule_next_run_for_job( $job, $now_ts );
 		}
+	}
+
+	/**
+	 * Build attachment basename fragment (no extension): dashboard slug + date span.
+	 *
+	 * @param string $dash_title Board title.
+	 * @param string $dash_id    Board key.
+	 * @param string $start_date Y-m-d.
+	 * @param string $end_date   Y-m-d.
+	 */
+	private static function attachment_export_base_name( $dash_title, $dash_id, $start_date, $end_date ) {
+		$slug = sanitize_file_name( $dash_title );
+		if ( '' === $slug ) {
+			$slug = sanitize_file_name( (string) $dash_id );
+		}
+		if ( '' === $slug ) {
+			$slug = 'dashboard';
+		}
+		$slug = substr( $slug, 0, 60 );
+		return sprintf( 'oiscl-report-%s-%s-to-%s', $slug, $start_date, $end_date );
+	}
+
+	/**
+	 * Replace wp_tempnam `.tmp` paths so mail clients offer readable filenames (.csv / .html).
+	 *
+	 * @param string $tmp_path                 Absolute path.
+	 * @param string $base_without_extension Base filename without extension.
+	 * @param string $extension              Extension without dot (csv|html).
+	 */
+	private static function finalize_attachment_path( $tmp_path, $base_without_extension, $extension ) {
+		if ( ! is_string( $tmp_path ) || '' === $tmp_path || ! is_readable( $tmp_path ) ) {
+			return $tmp_path;
+		}
+
+		$ext = strtolower( preg_replace( '/[^a-z0-9]/', '', (string) $extension ) );
+		if ( '' === $ext ) {
+			$ext = 'dat';
+		}
+
+		$dir  = dirname( $tmp_path );
+		$base = sanitize_file_name( $base_without_extension );
+		if ( '' === $base ) {
+			$base = 'oiscl-report';
+		}
+
+		$candidate   = $base . '.' . $ext;
+		$unique_name = wp_unique_filename( $dir, $candidate );
+		$new_path    = path_join( $dir, $unique_name );
+
+		if ( $new_path === $tmp_path ) {
+			return $tmp_path;
+		}
+
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- rename may fail cross-volume; fall back to copy.
+		if ( @rename( $tmp_path, $new_path ) ) {
+			return $new_path;
+		}
+
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		if ( @copy( $tmp_path, $new_path ) ) {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@unlink( $tmp_path );
+			return $new_path;
+		}
+
+		return $tmp_path;
 	}
 
 	/**
