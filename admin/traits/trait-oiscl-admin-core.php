@@ -40,10 +40,14 @@ trait OISCL_Admin_Core_Trait {
         add_action( 'wp_ajax_oiscl_host_health_ping', array( $this, 'ajax_oiscl_host_health_ping' ) );
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
 
-        $admin = get_role('administrator');
-        if ($admin && !$admin->has_cap('view_ois_analytics')) {
-            $admin->add_cap('view_ois_analytics');
-            $admin->add_cap('manage_ois_marketing');
+        $admin = get_role( 'administrator' );
+        if ( $admin ) {
+            if ( ! $admin->has_cap( 'view_ois_analytics' ) ) {
+                $admin->add_cap( 'view_ois_analytics' );
+            }
+            if ( ! $admin->has_cap( 'manage_ois_marketing' ) ) {
+                $admin->add_cap( 'manage_ois_marketing' );
+            }
         }
     }
     

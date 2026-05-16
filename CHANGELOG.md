@@ -23,6 +23,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Capabilities:** Administrator now receives **`manage_ois_marketing`** whenever it is missing (bootstrap runs independently of `view_ois_analytics`). Restores access to Custom Dashboards, Send Reports, and SEO when WordPress showed “Sorry, you are not allowed to access this page.”
+
 - **UTM Funnel:** Global card footnote for Step 3 now matches behaviour — conversion labels apply on **Funnel by campaign link** rows; global and company rollups use the broad Step 3 rule.
 
 ## [0.73.6] - 2026-05-12
