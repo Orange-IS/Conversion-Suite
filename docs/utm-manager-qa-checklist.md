@@ -75,4 +75,4 @@ Expect: no DB errors in debug log; KPIs and charts/lists consistent with filter.
 
 **Already in repo:** `composer test` runs PHPUnit (`tests/`, e.g. `UtmQueryHelperTest` for SQL fragment injection + funnel CSV section flags). `.github/workflows/phpunit.yml` runs that suite on PHP 8.1–8.3 for pushes to `main` / `master` / `develop` and for pull requests.
 
-**Phase 2+ (optional backlog):** broaden automated coverage beyond the query helper (funnel/journey SQL paths, alert computation edge cases); richer internal docs (deeper funnel definitions, roles); any product features not listed in Phase 1 above.
+**Further backlog (Phase 2+):** see `utm-manager-roadmap.md`.

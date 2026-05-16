@@ -1153,6 +1153,7 @@ trait OISCL_Admin_Settings_Trait {
             <ul style="list-style:disc; margin-left:1.25em;">
                 <li><a href="<?php echo esc_url( $docs_base . 'utm-manager-business-map.md' ); ?>" target="_blank" rel="noopener noreferrer">utm-manager-business-map.md</a></li>
                 <li><a href="<?php echo esc_url( $docs_base . 'utm-manager-qa-checklist.md' ); ?>" target="_blank" rel="noopener noreferrer">utm-manager-qa-checklist.md</a></li>
+                <li><a href="<?php echo esc_url( $docs_base . 'utm-manager-roadmap.md' ); ?>" target="_blank" rel="noopener noreferrer">utm-manager-roadmap.md</a></li>
             </ul>
             <?php endif; ?>
         </div>
