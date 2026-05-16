@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Send Reports:** Admin page and scheduled email copy default to **English** (replacing Spanish strings).
 
+- **Send Reports:** Per-job **preferred send time** (site timezone), **pause/resume** without deleting jobs, **next run** aligned to cadence + clock (`compute_next_run_after`), and **richer notification emails** (summary table, CSV size when attached, links to Custom Dashboards and Send Reports).
+
 - **Admin UTM trait:** Proper docblock on `oiscl_process_utm_settings_request` (replaces obsolete inline marker).
 
 ### Fixed

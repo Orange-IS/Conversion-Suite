@@ -34,6 +34,7 @@ final class OISCL_Scheduled_Reports {
 		add_action( 'init', array( __CLASS__, 'maybe_schedule_cron' ) );
 		add_action( 'admin_post_oiscl_save_report_schedule', array( __CLASS__, 'handle_save_schedule' ) );
 		add_action( 'admin_post_oiscl_delete_report_schedule', array( __CLASS__, 'handle_delete_schedule' ) );
+		add_action( 'admin_post_oiscl_toggle_report_schedule', array( __CLASS__, 'handle_toggle_schedule' ) );
 	}
 
 	/**
@@ -102,23 +103,6 @@ final class OISCL_Scheduled_Reports {
 	}
 
 	/**
-	 * @param string $cadence daily|weekly|biweekly|monthly
-	 */
-	public static function cadence_seconds( $cadence ) {
-		switch ( $cadence ) {
-			case self::CADENCE_DAILY:
-				return DAY_IN_SECONDS;
-			case self::CADENCE_BIWEEKLY:
-				return 14 * DAY_IN_SECONDS;
-			case self::CADENCE_MONTHLY:
-				return 30 * DAY_IN_SECONDS;
-			case self::CADENCE_WEEKLY:
-			default:
-				return 7 * DAY_IN_SECONDS;
-		}
-	}
-
-	/**
 	 * @return string[]
 	 */
 	public static function allowed_periods() {
@@ -130,6 +114,98 @@ final class OISCL_Scheduled_Reports {
 			self::PERIOD_PREV_MONTH_1_15,
 			self::PERIOD_PREV_MONTH_16_END,
 		);
+	}
+
+	/**
+	 * Human-readable snapshot preset label (admin + email).
+	 *
+	 * @param string $period Period key.
+	 */
+	public static function period_label( $period ) {
+		$labels = array(
+			self::PERIOD_ROLLING_7           => __( 'Last 7 days (through yesterday)', 'ois-conversion-suite' ),
+			self::PERIOD_ROLLING_14          => __( 'Last 14 days (through yesterday)', 'ois-conversion-suite' ),
+			self::PERIOD_ROLLING_30          => __( 'Last 30 days (through yesterday)', 'ois-conversion-suite' ),
+			self::PERIOD_PREV_CALENDAR_MONTH => __( 'Previous calendar month (full)', 'ois-conversion-suite' ),
+			self::PERIOD_PREV_MONTH_1_15     => __( 'Previous month: day 1–15', 'ois-conversion-suite' ),
+			self::PERIOD_PREV_MONTH_16_END   => __( 'Previous month: day 16–end', 'ois-conversion-suite' ),
+		);
+		$key = (string) $period;
+		return isset( $labels[ $key ] ) ? $labels[ $key ] : $key;
+	}
+
+	/**
+	 * Send clock in site timezone (defaults for legacy jobs: 08:00).
+	 *
+	 * @param array<string,mixed> $job Job row.
+	 * @return int[] { hour 0–23, minute 0–59 }
+	 */
+	public static function job_send_hour_minute( array $job ) {
+		$h = isset( $job['send_hour'] ) ? (int) $job['send_hour'] : 8;
+		$m = isset( $job['send_minute'] ) ? (int) $job['send_minute'] : 0;
+		$h = max( 0, min( 23, $h ) );
+		$m = max( 0, min( 59, $m ) );
+		return array( $h, $m );
+	}
+
+	/**
+	 * Next UNIX timestamp ≥ $after_ts matching cadence and local send time (site timezone).
+	 *
+	 * @param string $cadence   Cadence key.
+	 * @param int    $hour      Local hour.
+	 * @param int    $minute    Local minute.
+	 * @param int    $after_ts  Epoch; schedule strictly after this instant unless same-second edge.
+	 */
+	public static function compute_next_run_after( $cadence, $hour, $minute, $after_ts ) {
+		$after_ts = (int) $after_ts;
+		$h        = (int) $hour;
+		$m        = (int) $minute;
+
+		try {
+			$tz = wp_timezone();
+		} catch ( \Exception $e ) {
+			$tz = new \DateTimeZone( 'UTC' );
+		}
+
+		$local = ( new \DateTimeImmutable( '@' . $after_ts ) )->setTimezone( $tz );
+
+		switch ( (string) $cadence ) {
+			case self::CADENCE_DAILY:
+				$candidate = $local->setTime( $h, $m, 0 );
+				if ( $candidate->getTimestamp() <= $after_ts ) {
+					$candidate = $candidate->modify( '+1 day' );
+				}
+				return $candidate->getTimestamp();
+
+			case self::CADENCE_BIWEEKLY:
+				$step = '+14 days';
+				break;
+			case self::CADENCE_MONTHLY:
+				$step = '+30 days';
+				break;
+			case self::CADENCE_WEEKLY:
+			default:
+				$step = '+7 days';
+				break;
+		}
+
+		$candidate = $local->setTime( $h, $m, 0 );
+		while ( $candidate->getTimestamp() <= $after_ts ) {
+			$candidate = $candidate->modify( $step );
+		}
+		return $candidate->getTimestamp();
+	}
+
+	/**
+	 * @param array<string,mixed> $job
+	 */
+	public static function schedule_next_run_for_job( array $job, $after_ts ) {
+		$cadence = isset( $job['cadence'] ) ? (string) $job['cadence'] : self::CADENCE_WEEKLY;
+		if ( ! in_array( $cadence, self::allowed_cadences(), true ) ) {
+			$cadence = self::CADENCE_WEEKLY;
+		}
+		list( $hour, $minute ) = self::job_send_hour_minute( $job );
+		return self::compute_next_run_after( $cadence, $hour, $minute, (int) $after_ts );
 	}
 
 	public static function run_tick() {
@@ -151,7 +227,7 @@ final class OISCL_Scheduled_Reports {
 
 			$dash_id = isset( $job['dashboard_id'] ) ? (string) $job['dashboard_id'] : '';
 			if ( '' === $dash_id || ! isset( $dashboards[ $dash_id ] ) ) {
-				$job['next_run'] = $now + HOUR_IN_SECONDS;
+				$job['next_run'] = self::schedule_next_run_for_job( $job, $now );
 				continue;
 			}
 
@@ -162,7 +238,7 @@ final class OISCL_Scheduled_Reports {
 
 			$range = OISCL_Report_Date_Ranges::resolve( $period, $now );
 			if ( null === $range ) {
-				$job['next_run'] = $now + HOUR_IN_SECONDS;
+				$job['next_run'] = self::schedule_next_run_for_job( $job, $now );
 				continue;
 			}
 
@@ -186,8 +262,7 @@ final class OISCL_Scheduled_Reports {
 			);
 
 			if ( empty( $recipients ) ) {
-				$cadence_short      = isset( $job['cadence'] ) ? (string) $job['cadence'] : self::CADENCE_WEEKLY;
-				$job['next_run']    = $now + self::cadence_seconds( $cadence_short );
+				$job['next_run'] = self::schedule_next_run_for_job( $job, $now );
 				continue;
 			}
 
@@ -202,14 +277,45 @@ final class OISCL_Scheduled_Reports {
 			$tz_try = function_exists( 'wp_timezone_string' ) ? wp_timezone_string() : '';
 			$tz     = $tz_try ? $tz_try : 'UTC';
 
-			$body  = '<p>' . esc_html__( 'Scheduled report snapshot. Figures apply only to the date range below.', 'ois-conversion-suite' ) . '</p>';
-			$body .= '<p><strong>' . esc_html__( 'Template / board:', 'ois-conversion-suite' ) . '</strong> ' . esc_html( $dash_title ) . '</p>';
-			$body .= '<p><strong>' . esc_html__( 'Period:', 'ois-conversion-suite' ) . '</strong> ' . esc_html( $range['start_date'] . ' — ' . $range['end_date'] ) . '</p>';
-			$body .= '<p><strong>' . esc_html__( 'Site timezone:', 'ois-conversion-suite' ) . '</strong> ' . esc_html( $tz ) . '</p>';
+			list( $send_h, $send_m ) = self::job_send_hour_minute( $job );
+			$send_clock              = sprintf( '%02d:%02d', $send_h, $send_m );
 
-			if ( empty( $attachments ) ) {
-				$body .= '<p><em>' . esc_html__( 'This template has no tabular columns; CSV is only generated when the board includes column blocks in Custom Dashboards.', 'ois-conversion-suite' ) . '</em></p>';
+			$cadence_label = self::cadence_label( isset( $job['cadence'] ) ? (string) $job['cadence'] : self::CADENCE_WEEKLY );
+			$period_label  = self::period_label( $period );
+
+			$csv_detail = __( 'No CSV — add tabular column blocks to this template in Custom Dashboards.', 'ois-conversion-suite' );
+			if ( ! empty( $attachments ) && is_string( $attachments[0] ) && is_readable( $attachments[0] ) ) {
+				$bytes = filesize( $attachments[0] );
+				if ( false !== $bytes && function_exists( 'size_format' ) ) {
+					$csv_detail = sprintf(
+						/* translators: %s: formatted file size */
+						__( 'CSV attached (%s)', 'ois-conversion-suite' ),
+						size_format( $bytes )
+					);
+				} else {
+					$csv_detail = __( 'CSV attached', 'ois-conversion-suite' );
+				}
 			}
+
+			$dash_link  = esc_url( admin_url( 'admin.php?page=oiscl-custom-dashboards&tab=dashboards' ) ) . '#wrap-dash-' . rawurlencode( (string) $dash_id );
+			$sched_link = admin_url( 'admin.php?page=oiscl-custom-reports' );
+
+			/* translators: %s: recipient count */
+			$recip_summary = sprintf( _n( '%s recipient', '%s recipients', count( $recipients ), 'ois-conversion-suite' ), number_format_i18n( count( $recipients ) ) );
+
+			$body  = '<p>' . esc_html__( 'Scheduled report snapshot. Figures apply only to the date range below.', 'ois-conversion-suite' ) . '</p>';
+			$body .= '<table cellpadding="6" cellspacing="0" style="border-collapse:collapse;border:1px solid #ccd0d4;margin:12px 0;"><tbody>';
+			$body .= '<tr><td style="border:1px solid #ccd0d4;"><strong>' . esc_html__( 'Template / board', 'ois-conversion-suite' ) . '</strong></td><td style="border:1px solid #ccd0d4;">' . esc_html( $dash_title ) . '</td></tr>';
+			$body .= '<tr><td style="border:1px solid #ccd0d4;"><strong>' . esc_html__( 'Cadence', 'ois-conversion-suite' ) . '</strong></td><td style="border:1px solid #ccd0d4;">' . esc_html( $cadence_label ) . '</td></tr>';
+			$body .= '<tr><td style="border:1px solid #ccd0d4;"><strong>' . esc_html__( 'Preferred send time (site)', 'ois-conversion-suite' ) . '</strong></td><td style="border:1px solid #ccd0d4;">' . esc_html( $send_clock ) . '</td></tr>';
+			$body .= '<tr><td style="border:1px solid #ccd0d4;"><strong>' . esc_html__( 'Date range (snapshot)', 'ois-conversion-suite' ) . '</strong></td><td style="border:1px solid #ccd0d4;">' . esc_html( $range['start_date'] . ' — ' . $range['end_date'] ) . '</td></tr>';
+			$body .= '<tr><td style="border:1px solid #ccd0d4;"><strong>' . esc_html__( 'Preset', 'ois-conversion-suite' ) . '</strong></td><td style="border:1px solid #ccd0d4;">' . esc_html( $period_label ) . '</td></tr>';
+			$body .= '<tr><td style="border:1px solid #ccd0d4;"><strong>' . esc_html__( 'Recipients', 'ois-conversion-suite' ) . '</strong></td><td style="border:1px solid #ccd0d4;">' . esc_html( $recip_summary ) . '</td></tr>';
+			$body .= '<tr><td style="border:1px solid #ccd0d4;"><strong>' . esc_html__( 'Attachment', 'ois-conversion-suite' ) . '</strong></td><td style="border:1px solid #ccd0d4;">' . esc_html( $csv_detail ) . '</td></tr>';
+			$body .= '<tr><td style="border:1px solid #ccd0d4;"><strong>' . esc_html__( 'Site timezone', 'ois-conversion-suite' ) . '</strong></td><td style="border:1px solid #ccd0d4;">' . esc_html( $tz ) . '</td></tr>';
+			$body .= '</tbody></table>';
+			$body .= '<p><a href="' . esc_url( $dash_link ) . '">' . esc_html__( 'Open this board in Custom Dashboards', 'ois-conversion-suite' ) . '</a> · ';
+			$body .= '<a href="' . esc_url( $sched_link ) . '">' . esc_html__( 'Manage Send Reports', 'ois-conversion-suite' ) . '</a></p>';
 
 			$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
@@ -223,9 +329,8 @@ final class OISCL_Scheduled_Reports {
 				}
 			}
 
-			$cadence          = isset( $job['cadence'] ) ? (string) $job['cadence'] : self::CADENCE_WEEKLY;
 			$job['last_sent'] = $now;
-			$job['next_run']  = $now + self::cadence_seconds( $cadence );
+			$job['next_run']  = self::schedule_next_run_for_job( $job, $now );
 		}
 		unset( $job );
 
@@ -271,21 +376,37 @@ final class OISCL_Scheduled_Reports {
 			exit;
 		}
 
+		$send_hour   = isset( $_POST['send_hour'] ) ? (int) wp_unslash( $_POST['send_hour'] ) : 8;
+		$send_minute = isset( $_POST['send_minute'] ) ? (int) wp_unslash( $_POST['send_minute'] ) : 0;
+		$send_hour   = max( 0, min( 23, $send_hour ) );
+		$send_minute = max( 0, min( 59, $send_minute ) );
+
 		$box = self::get_jobs_container();
 		$id  = strtolower( wp_generate_password( 10, false, false ) );
 
-		$box['jobs'][] = array(
+		$new_job = array(
 			'id'              => $id,
 			'dashboard_id'    => $dashboard_id,
 			'dashboard_title' => isset( $dashboards[ $dashboard_id ]['title'] ) ? (string) $dashboards[ $dashboard_id ]['title'] : '',
 			'recipients'      => $emails,
 			'cadence'         => $cadence,
 			'period'          => $period,
+			'send_hour'       => $send_hour,
+			'send_minute'     => $send_minute,
 			'enabled'         => 1,
 			'created_at'      => time(),
 			'last_sent'       => 0,
-			'next_run'        => time() + MINUTE_IN_SECONDS,
+			'next_run'        => self::schedule_next_run_for_job(
+				array(
+					'cadence'     => $cadence,
+					'send_hour'   => $send_hour,
+					'send_minute' => $send_minute,
+				),
+				time()
+			),
 		);
+
+		$box['jobs'][] = $new_job;
 
 		self::save_jobs_container( $box );
 
@@ -318,6 +439,48 @@ final class OISCL_Scheduled_Reports {
 		self::save_jobs_container( $box );
 
 		wp_safe_redirect( admin_url( 'admin.php?page=oiscl-custom-reports&oiscl_sched_deleted=1' ) );
+		exit;
+	}
+
+	public static function handle_toggle_schedule() {
+		if ( ! current_user_can( 'manage_ois_marketing' ) ) {
+			wp_die( esc_html__( 'Insufficient permissions.', 'ois-conversion-suite' ) );
+		}
+
+		$job_id = isset( $_GET['job_id'] ) ? sanitize_key( wp_unslash( $_GET['job_id'] ) ) : '';
+		check_admin_referer( 'oiscl_toggle_report_schedule_' . $job_id );
+
+		if ( '' === $job_id ) {
+			wp_safe_redirect( admin_url( 'admin.php?page=oiscl-custom-reports' ) );
+			exit;
+		}
+
+		$box          = self::get_jobs_container();
+		$found        = false;
+		$was_enabled  = false;
+		foreach ( $box['jobs'] as &$j ) {
+			if ( ! isset( $j['id'] ) || (string) $j['id'] !== $job_id ) {
+				continue;
+			}
+			$was_enabled  = ! empty( $j['enabled'] );
+			$j['enabled'] = $was_enabled ? 0 : 1;
+			if ( ! $was_enabled ) {
+				$j['next_run'] = self::schedule_next_run_for_job( $j, time() );
+			}
+			$found = true;
+			break;
+		}
+		unset( $j );
+
+		if ( ! $found ) {
+			wp_safe_redirect( admin_url( 'admin.php?page=oiscl-custom-reports' ) );
+			exit;
+		}
+
+		self::save_jobs_container( $box );
+
+		$query = $was_enabled ? 'oiscl_sched_paused=1' : 'oiscl_sched_resumed=1';
+		wp_safe_redirect( admin_url( 'admin.php?page=oiscl-custom-reports&' . $query ) );
 		exit;
 	}
 }

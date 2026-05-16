@@ -24,10 +24,16 @@ trait OISCL_Admin_Custom_Reports_Trait {
 		echo '<h1 class="oiscl-admin-page-title">' . esc_html__( '📑 Send Reports', 'ois-conversion-suite' ) . '</h1>';
 
 		if ( ! empty( $_GET['oiscl_sched_saved'] ) ) {
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Schedule saved. The first send may take up to one hour (hourly cron).', 'ois-conversion-suite' ) . '</p></div>';
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Schedule saved. WordPress runs an hourly cron; the first send occurs at or after your preferred local time once the slot is due.', 'ois-conversion-suite' ) . '</p></div>';
 		}
 		if ( ! empty( $_GET['oiscl_sched_deleted'] ) ) {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Schedule removed.', 'ois-conversion-suite' ) . '</p></div>';
+		}
+		if ( ! empty( $_GET['oiscl_sched_paused'] ) ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Schedule paused.', 'ois-conversion-suite' ) . '</p></div>';
+		}
+		if ( ! empty( $_GET['oiscl_sched_resumed'] ) ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Schedule resumed.', 'ois-conversion-suite' ) . '</p></div>';
 		}
 		if ( isset( $_GET['oiscl_sched_err'] ) ) {
 			$err = sanitize_key( wp_unslash( $_GET['oiscl_sched_err'] ) );
@@ -76,20 +82,26 @@ trait OISCL_Admin_Custom_Reports_Trait {
 			echo '<option value="' . esc_attr( $cad_key ) . '">' . esc_html( OISCL_Scheduled_Reports::cadence_label( $cad_key ) ) . '</option>';
 		}
 		echo '</select>';
-		echo '<p class="description">' . esc_html__( 'Approximate interval between sends (checked on the hourly cron).', 'ois-conversion-suite' ) . '</p></td></tr>';
+		echo '<p class="description">' . esc_html__( 'Interval between sends. Each send is targeted at your preferred local clock time below (site timezone).', 'ois-conversion-suite' ) . '</p></td></tr>';
+
+		echo '<tr><th scope="row">' . esc_html__( 'Preferred send time', 'ois-conversion-suite' ) . '</th><td>';
+		echo '<select name="send_hour" id="oiscl_sched_send_h" aria-label="' . esc_attr__( 'Hour', 'ois-conversion-suite' ) . '">';
+		for ( $h = 0; $h <= 23; $h++ ) {
+			echo '<option value="' . (int) $h . '"' . selected( $h, 8, false ) . '>' . esc_html( sprintf( '%02d', $h ) ) . '</option>';
+		}
+		echo '</select>';
+		echo ' : ';
+		echo '<select name="send_minute" id="oiscl_sched_send_m" aria-label="' . esc_attr__( 'Minute', 'ois-conversion-suite' ) . '">';
+		for ( $m = 0; $m <= 59; $m++ ) {
+			echo '<option value="' . (int) $m . '"' . selected( $m, 0, false ) . '>' . esc_html( sprintf( '%02d', $m ) ) . '</option>';
+		}
+		echo '</select>';
+		echo '<p class="description">' . esc_html__( 'Uses the WordPress site timezone. The hourly cron may deliver shortly after this time.', 'ois-conversion-suite' ) . '</p></td></tr>';
 
 		echo '<tr><th scope="row">' . esc_html__( 'Data range (snapshot)', 'ois-conversion-suite' ) . '</th><td>';
 		echo '<select name="period">';
-		$presets = array(
-			OISCL_Scheduled_Reports::PERIOD_ROLLING_7           => __( 'Last 7 days (through yesterday)', 'ois-conversion-suite' ),
-			OISCL_Scheduled_Reports::PERIOD_ROLLING_14          => __( 'Last 14 days (through yesterday)', 'ois-conversion-suite' ),
-			OISCL_Scheduled_Reports::PERIOD_ROLLING_30          => __( 'Last 30 days (through yesterday)', 'ois-conversion-suite' ),
-			OISCL_Scheduled_Reports::PERIOD_PREV_CALENDAR_MONTH => __( 'Previous calendar month (full)', 'ois-conversion-suite' ),
-			OISCL_Scheduled_Reports::PERIOD_PREV_MONTH_1_15     => __( 'Previous month: day 1–15', 'ois-conversion-suite' ),
-			OISCL_Scheduled_Reports::PERIOD_PREV_MONTH_16_END   => __( 'Previous month: day 16–end', 'ois-conversion-suite' ),
-		);
-		foreach ( $presets as $val => $label ) {
-			echo '<option value="' . esc_attr( $val ) . '">' . esc_html( $label ) . '</option>';
+		foreach ( OISCL_Scheduled_Reports::allowed_periods() as $pkey ) {
+			echo '<option value="' . esc_attr( $pkey ) . '">' . esc_html( OISCL_Scheduled_Reports::period_label( $pkey ) ) . '</option>';
 		}
 		echo '</select></td></tr>';
 
@@ -104,8 +116,10 @@ trait OISCL_Admin_Custom_Reports_Trait {
 		} else {
 			echo '<table class="wp-list-table widefat striped"><thead><tr>';
 			echo '<th>' . esc_html__( 'Dashboard', 'ois-conversion-suite' ) . '</th>';
+			echo '<th>' . esc_html__( 'Status', 'ois-conversion-suite' ) . '</th>';
 			echo '<th>' . esc_html__( 'Recipients', 'ois-conversion-suite' ) . '</th>';
 			echo '<th>' . esc_html__( 'Cadence', 'ois-conversion-suite' ) . '</th>';
+			echo '<th>' . esc_html__( 'Send time', 'ois-conversion-suite' ) . '</th>';
 			echo '<th>' . esc_html__( 'Range preset', 'ois-conversion-suite' ) . '</th>';
 			echo '<th>' . esc_html__( 'Next send', 'ois-conversion-suite' ) . '</th>';
 			echo '<th>' . esc_html__( 'Last sent', 'ois-conversion-suite' ) . '</th>';
@@ -118,9 +132,30 @@ trait OISCL_Admin_Custom_Reports_Trait {
 				$cad       = isset( $job['cadence'] ) ? (string) $job['cadence'] : '';
 				$cad_label = OISCL_Scheduled_Reports::cadence_label( $cad );
 				$per       = isset( $job['period'] ) ? (string) $job['period'] : '';
+				$per_label = OISCL_Scheduled_Reports::period_label( $per );
 				$next      = isset( $job['next_run'] ) ? (int) $job['next_run'] : 0;
 				$last      = isset( $job['last_sent'] ) ? (int) $job['last_sent'] : 0;
-				$delurl    = wp_nonce_url(
+				$enabled   = ! empty( $job['enabled'] );
+				list( $sh, $sm ) = OISCL_Scheduled_Reports::job_send_hour_minute( $job );
+				$clock_label     = sprintf( '%02d:%02d', $sh, $sm );
+				$status_label    = $enabled
+					? __( 'Active', 'ois-conversion-suite' )
+					: __( 'Paused', 'ois-conversion-suite' );
+				$toggle_label = $enabled
+					? __( 'Pause', 'ois-conversion-suite' )
+					: __( 'Resume', 'ois-conversion-suite' );
+
+				$toggleurl = wp_nonce_url(
+					add_query_arg(
+						array(
+							'action' => 'oiscl_toggle_report_schedule',
+							'job_id' => rawurlencode( $jid ),
+						),
+						admin_url( 'admin-post.php' )
+					),
+					'oiscl_toggle_report_schedule_' . $jid
+				);
+				$delurl = wp_nonce_url(
 					add_query_arg(
 						array(
 							'action' => 'oiscl_delete_report_schedule',
@@ -132,12 +167,18 @@ trait OISCL_Admin_Custom_Reports_Trait {
 				);
 				echo '<tr>';
 				echo '<td>' . esc_html( $title ) . '</td>';
+				echo '<td>' . esc_html( $status_label ) . '</td>';
 				echo '<td>' . esc_html( $rec ) . '</td>';
 				echo '<td>' . esc_html( $cad_label ) . '</td>';
-				echo '<td><code>' . esc_html( $per ) . '</code></td>';
+				echo '<td>' . esc_html( $clock_label ) . '</td>';
+				echo '<td>' . esc_html( $per_label ) . '</td>';
 				echo '<td>' . ( $next ? esc_html( wp_date( 'Y-m-d H:i', $next ) ) : '—' ) . '</td>';
 				echo '<td>' . ( $last ? esc_html( wp_date( 'Y-m-d H:i', $last ) ) : '—' ) . '</td>';
-				echo '<td><a href="' . esc_url( $delurl ) . '" class="button-link-delete" onclick="return confirm(\'' . esc_js( __( 'Remove this schedule?', 'ois-conversion-suite' ) ) . '\');">' . esc_html__( 'Remove', 'ois-conversion-suite' ) . '</a></td>';
+				echo '<td>';
+				echo '<a href="' . esc_url( $toggleurl ) . '">' . esc_html( $toggle_label ) . '</a>';
+				echo ' <span class="sep">|</span> ';
+				echo '<a href="' . esc_url( $delurl ) . '" class="button-link-delete" onclick="return confirm(\'' . esc_js( __( 'Remove this schedule?', 'ois-conversion-suite' ) ) . '\');">' . esc_html__( 'Remove', 'ois-conversion-suite' ) . '</a>';
+				echo '</td>';
 				echo '</tr>';
 			}
 			echo '</tbody></table>';
