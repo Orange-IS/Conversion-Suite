@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - **Docs:** `utm-manager-funnel-semantics.md` (UTM Funnel Steps 1–3, aligned with metrics logic).
+- **Docs:** `utm-manager-roles-capabilities.md` (UTM menus, exports, AJAX, alerts vs `view_ois_analytics` / `manage_options`).
 
 ### Fixed
 

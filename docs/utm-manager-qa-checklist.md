@@ -14,6 +14,7 @@ Use this list before marking **OIS UTM Manager** as production-ready. Environmen
 - [ ] **Settings → Maintenance → Hosting & plugin health check** (Ping admin-ajax + UTM shortcuts). **Settings → Backup / Restore**: export dialog (all vs date range) + import smoke test if used.
 - [ ] All main tabs load: **Overview**, **UTM Content & CRO**, **UTM Funnel**, **UTM Click Tracker**, **UTM Audience**, **UTM User Journey**.
 - [ ] Header date range: preset links (Today / 7 days / …), prev/next arrows, custom range submit preserve **`tab`** and relevant params (**`uct_tab`** on Click Tracker, **`utm_filter`**, **`tp_page`** / **`tp_revision`** when set).
+- [ ] **Roles:** user with only **`view_ois_analytics`** sees **OIS UTM Manager** but not **Suite Settings**; user with **`manage_options`** can save UTM references and Campaign alerts (see `utm-manager-roles-capabilities.md`).
 
 ## 3. Filter sweep (`utm_filter`)
 

@@ -63,4 +63,4 @@ Funnel CSV downloads honor the same date range and **`utm_filter`**. Scopes (`fu
 | Company / link rollups | `oiscl_utm_analyze_company_funnel`, `oiscl_utm_analyze_link_funnel` |
 | CSV | `oiscl_export_utm_funnel_csv` |
 
-See also `utm-manager-business-map.md` and `utm-manager-roadmap.md`.
+See also `utm-manager-business-map.md`, `utm-manager-roadmap.md`, and `utm-manager-roles-capabilities.md`.
